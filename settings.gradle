@@ -1,3 +1,4 @@
 rootProject.name = 'spring-securiry-examples-simplified'
 include '_1-in-memory-security'
+include '_2-db-username-pwd-security'
 
