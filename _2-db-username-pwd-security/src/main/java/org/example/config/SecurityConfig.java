@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
         )
                 .csrf(csfr -> csfr.disable())
-                .httpBasic(Customizer.withDefaults()).build();
+                .httpBasic(Customizer.withDefaults()).build(); // it's the place we are telling use BasicAuthFilter, default is form based
     }
 
 }
