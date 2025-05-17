@@ -1,6 +1,6 @@
 package org.example.entity;
 
-import org.springframework.data.annotation.Id;
+import javax.persistence.Id;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
