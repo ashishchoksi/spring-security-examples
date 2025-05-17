@@ -1,6 +1,8 @@
 package org.example.config;
 
 import org.example.filter.JwtAuthFilter;
+import org.example.filter.JwtAuthValidatorFilter;
+import org.example.provider.JwtAuthValidatorProvider;
 import org.example.util.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,14 +44,27 @@ public class SecurityConfig {
         return daoAuthenticationProvider;
     }
 
+    @Bean
+    public JwtAuthValidatorProvider jwtAuthValidatorProvider(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+        return new JwtAuthValidatorProvider(jwtUtil, userDetailsService);
+    }
+
     /* we have to tell AuthManager to use DaoProvider only not others
     why Dao Auth only
     because we have created UserNamePasswordToken() that is handled by Dao Auth provider
+
+    authManager.authentocate(...)
+        needs list of providers to call .authentication() for all
+        so register all providers we need before
+
     */
     @Bean
-    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService) {
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService, JwtUtil jwtUtil) {
         return new ProviderManager(
-                Arrays.asList(daoAuthenticationProvider(userDetailsService))
+                Arrays.asList(
+                        daoAuthenticationProvider(userDetailsService),
+                        jwtAuthValidatorProvider(jwtUtil, userDetailsService)
+                )
         );
     }
 
@@ -62,12 +77,15 @@ public class SecurityConfig {
                                                    AuthenticationManager authenticationManager) throws Exception {
 
         JwtAuthFilter jwtAuthFilter = new JwtAuthFilter(authenticationManager, jwtUtil);
+        JwtAuthValidatorFilter jwtAuthValidatorFilter = new JwtAuthValidatorFilter(authenticationManager);
+
         return http.authorizeHttpRequests(auth -> auth
                 .regexMatchers("/user/register").permitAll()
                 .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(csfr -> csfr.disable())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtAuthValidatorFilter, JwtAuthFilter.class) // validate after token created
                 .build(); // our filter will take care everything
     }
 
