@@ -52,12 +52,9 @@ public class JwtAuthValidatorFilter extends OncePerRequestFilter {
             // since its custom token we have to create provider to handle .authenticate() method
             Authentication authenticate = authenticationManager.authenticate(jwtAuthToken);
 
-            if (!authenticate.isAuthenticated()) {
-                throw new BadCredentialsException("Invalid token found!");
+            if (authenticate.isAuthenticated()) {
+                SecurityContextHolder.getContext().setAuthentication(authenticate);
             }
-
-            // set authenticator to security context holder to use forward
-            SecurityContextHolder.getContext().setAuthentication(authenticate);
         }
 
         filterChain.doFilter(request, response);
