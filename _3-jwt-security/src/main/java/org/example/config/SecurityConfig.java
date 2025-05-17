@@ -2,6 +2,7 @@ package org.example.config;
 
 import org.example.filter.JwtAuthFilter;
 import org.example.filter.JwtAuthValidatorFilter;
+import org.example.filter.JwtRefreshFilter;
 import org.example.provider.JwtAuthValidatorProvider;
 import org.example.util.JwtUtil;
 import org.springframework.context.annotation.Bean;
@@ -78,6 +79,7 @@ public class SecurityConfig {
 
         JwtAuthFilter jwtAuthFilter = new JwtAuthFilter(authenticationManager, jwtUtil);
         JwtAuthValidatorFilter jwtAuthValidatorFilter = new JwtAuthValidatorFilter(authenticationManager);
+        JwtRefreshFilter jwtRefreshFilter = new JwtRefreshFilter(authenticationManager, jwtUtil);
 
         return http.authorizeHttpRequests(auth -> auth
                 .regexMatchers("/user/register").permitAll()
@@ -86,6 +88,7 @@ public class SecurityConfig {
                 .csrf(csfr -> csfr.disable())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtAuthValidatorFilter, JwtAuthFilter.class) // validate after token created
+                .addFilterAfter(jwtRefreshFilter, JwtAuthValidatorFilter.class) // validate after token created
                 .build(); // our filter will take care everything
     }
 

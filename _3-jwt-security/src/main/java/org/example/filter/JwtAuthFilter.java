@@ -11,6 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -53,6 +54,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (authenticate.isAuthenticated()) {
             String token = jwtUtil.generateToken(authenticate.getName(), 15); // 15 min valid token
             response.setHeader("Authorization", "Bearer " + token);
+
+            // set 2 kind of token short-lived token set in header, long refresh-token store in cookit
+            String refreshToken = jwtUtil.generateToken(authenticate.getName(), 7 * 24 * 60); // 7 days
+            Cookie cookie = new Cookie("refreshToken", refreshToken);
+            cookie.setHttpOnly(true); // prevent js to access it
+//            cookie.setSecure(true); // send only over https
+            cookie.setPath("/user/refresh-token"); //  only send when this path is there
+            cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days in seconds
+            response.addCookie(cookie);
         }
     }
 }
